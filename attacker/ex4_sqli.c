@@ -231,7 +231,7 @@ void binary_search(char * discovered_name, int sockfd) {
         char low = 'a';
         char high = 'z';
         char mid;
-        while (low <= high) {
+        while (low < high) {
             mid = (char)(low + (high - low) / 2);
         #ifdef __MY_DEBUG__
             count++;
@@ -246,7 +246,7 @@ void binary_search(char * discovered_name, int sockfd) {
             printf("\t%s,%c,%c\n", discovered_name, low, high);
         #endif
         }
-        discovered_name[i] = low;
+        discovered_name[i] = mid;
     }
 #ifdef __MY_DEBUG__
     printf("number of queries is: %d\n",count);

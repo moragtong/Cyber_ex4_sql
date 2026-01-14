@@ -394,7 +394,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
                 low=mid + 1;
             }
         #ifdef __MY_DEBUG__
-            printf("\t%s,%c,%c\n", gen_ctx->discovered, low, high);
+            printf("\t%s,%c,%c\n", gen_ctx->discovered, low + 0x20, high + 0x20);
         #endif
         }
         if (low>=0x5f) {

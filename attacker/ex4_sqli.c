@@ -397,7 +397,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
             printf("\t%s,%c,%c\n", gen_ctx->discovered, low + 0x20, high + 0x20);
         #endif
         }
-        if (low>=0x5f) {
+        if (low>0x5f) {
             break;
         }
         strcat(gen_ctx->discovered, url_map[low]);

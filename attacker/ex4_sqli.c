@@ -373,7 +373,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
     int count = 0;
 #endif
 
-    for (int i = 0; i < 11; i++) {
+    for (int i = 0; i < 10; i++) {
     #ifdef __MY_DEBUG__
         printf("%i--\n", i);
     #endif
@@ -397,6 +397,9 @@ void binary_search(check_func_t check_fn, void *ctx) {
         #endif
         }
         if (low>=0x5f) {
+            #ifdef __MY_DEBUG__
+                puts("String shorter than max.");
+            #endif
             break;
         }
         strcat(gen_ctx->discovered, url_map[low]);

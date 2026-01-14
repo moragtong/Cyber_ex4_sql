@@ -224,11 +224,12 @@ void binary_search(char * discovered_name, int sockfd) {
 #ifdef __MY_DEBUG__
     int count = 0;
 #endif
+    char mid;
     for (int i = 0; i < 10; i++) {
         char low = 'a';
         char high = 'z';
         while (low <= high) {
-            char mid = (char)(low + (high - low) / 2);
+            mid = (char)(low + (high - low) / 2);
         #ifdef __MY_DEBUG__
             count++;
         #endif
@@ -239,6 +240,7 @@ void binary_search(char * discovered_name, int sockfd) {
                 high=mid-1;
             }
         }
+        discovered_name[i] = mid;
     }
 #ifdef __MY_DEBUG__
     printf("%d",count);

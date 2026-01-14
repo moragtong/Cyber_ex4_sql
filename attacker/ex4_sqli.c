@@ -228,8 +228,8 @@ void binary_search(char * discovered_name, int sockfd) {
     int count = 0;
 #endif
     for (int i = 0; i < 10; i++) {
-        char low = 0x20;
-        char high = 0x5f;
+        char low = 'a';
+        char high = 'z';
         while (low <= high) {
             char mid = (char)(low + (high - low) / 2);
             discovered_name[i] = mid;

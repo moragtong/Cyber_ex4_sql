@@ -228,8 +228,8 @@ void binary_search(char * discovered_name, int sockfd) {
     #ifdef __MY_DEBUG__
         printf("%i--\n", i);
     #endif
-        char low = 'a';
-        char high = 'z' + 1;
+        char low = 0x20;
+        char high = 0x80;
         char mid;
         while (low < high) {
             mid = (char)(low + (high - low) / 2);
@@ -246,10 +246,9 @@ void binary_search(char * discovered_name, int sockfd) {
             printf("\t%s,%c,%c\n", discovered_name, low, high);
         #endif
         }
-        if (low<='z') {
+        if (low<=0x7f) {
             discovered_name[i] = low;
-        }
-        else {
+        } else {
             break;
         }
     }

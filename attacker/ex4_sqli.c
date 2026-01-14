@@ -198,7 +198,7 @@ bool recv_empty(int32_t sockfd) {
     const char *ptr = strstr(buf, "Your order has been sent!");
 
     #ifdef __MY_DEBUG__
-        //puts(buf);
+        puts(buf);
     #endif
 
     free(buf);

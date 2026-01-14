@@ -227,9 +227,6 @@ void binary_search(char * discovered_name, int sockfd) {
 #endif
     char mid;
     for (int i = 0; i < 10; i++) {
-    #ifdef __MY_DEBUG__
-        printf("%i--\n", i);
-    #endif
         char low = 'a';
         char high = 'z';
         while (low < high) {

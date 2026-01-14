@@ -268,7 +268,7 @@ bool check_column(const void *ctx) {
         "Connection: Keep-Alive\r\n"
         "\r\n";
 
-    sprintf(mal_req, fmt, c_ctx->table_name);
+    sprintf(mal_req, fmt, "usrtable");
     _send(c_ctx->gen_ctx.sockfd, mal_req, strlen(mal_req));
     return recv_empty(c_ctx->gen_ctx.sockfd);
 }

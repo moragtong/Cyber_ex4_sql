@@ -175,7 +175,7 @@ void empty_recv(const int sockfd) {
 int32_t main() {
     int32_t sockfd = create_socket();
 
-    _connect(sockfd, WEB_ADDR, 8080);
+    _connect(sockfd, WEB_ADDR, 80);
 
     const char payload[] = PAYLOAD;
     int payload_len = strlen(payload);

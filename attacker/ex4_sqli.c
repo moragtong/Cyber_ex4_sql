@@ -210,7 +210,7 @@ bool send_check_success(char * discovered_name, int i, char mid, int sockfd) {
         "Host: 192.168.1.202\r\n"
         "Connection: Keep-Alive\r\n"
         "\r\n",
-        discovered_name, i, mid
+        discovered_name, i + 1, mid
     );
 
     _send(sockfd, mal_req, strlen(mal_req));

@@ -232,7 +232,7 @@ void binary_search(char * discovered_name, int sockfd) {
         unsigned char high = 0x80;
         unsigned char mid;
         while (low < high) {
-            mid = (low + (high - low) / 2);
+            mid = (unsigned char)(low + (high - low) / 2);
         #ifdef __MY_DEBUG__
             count++;
         #endif

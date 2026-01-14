@@ -212,9 +212,7 @@ bool send_check_success(char * discovered_name, int i, char mid, int sockfd) {
         "\r\n",
         discovered_name, i, mid
     );
-#ifdef __MY_DEBUG__
-    puts(mal_req);
-#endif
+
     _send(sockfd, mal_req, strlen(mal_req));
 
     return recv_empty(sockfd);
@@ -227,6 +225,9 @@ void binary_search(char * discovered_name, int sockfd) {
 #endif
     char mid;
     for (int i = 0; i < 10; i++) {
+    #ifdef __MY_DEBUG__
+        printf("%i--\n", i);
+    #endif
         char low = 'a';
         char high = 'z';
         while (low < high) {

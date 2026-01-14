@@ -240,7 +240,7 @@ void binary_search(char * discovered_name, int sockfd) {
                 high=mid-1;
             }
         }
-        discovered_name[i] = mid;
+        discovered_name[i] = low;
     }
 #ifdef __MY_DEBUG__
     printf("number of queries is: %d\n",count);

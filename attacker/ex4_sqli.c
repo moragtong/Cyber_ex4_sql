@@ -243,7 +243,7 @@ void binary_search(char * discovered_name, int sockfd) {
         discovered_name[i] = mid;
     }
 #ifdef __MY_DEBUG__
-    printf("%d",count);
+    printf("count is: %d\n",count);
 #endif
 }
 

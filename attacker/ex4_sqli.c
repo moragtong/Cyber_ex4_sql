@@ -232,7 +232,7 @@ void binary_search(char * discovered_name, int sockfd) {
         unsigned char high = 0x80;
         unsigned char mid;
         while (low < high) {
-            mid = (char)(low + (high - low) / 2);
+            mid = (low + (high - low) / 2);
         #ifdef __MY_DEBUG__
             count++;
         #endif
@@ -247,7 +247,7 @@ void binary_search(char * discovered_name, int sockfd) {
         #endif
         }
         if (low<=0x7f) {
-            discovered_name[i] = low;
+            discovered_name[i] = (char) low;
         } else {
             break;
         }

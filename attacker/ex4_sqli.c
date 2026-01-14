@@ -373,7 +373,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
     int count = 0;
 #endif
 
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < 10; i++) {
     #ifdef __MY_DEBUG__
         printf("%i--\n", i);
     #endif
@@ -434,7 +434,7 @@ int32_t main() {
                 .discovered = id_name
             },
             .table_name = table_name,
-            .col_to_find = "id"
+            .col_to_find = ""
         };
 
         binary_search(check_column, &id_ctx);

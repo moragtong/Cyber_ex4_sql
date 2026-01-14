@@ -186,9 +186,7 @@ bool recv_empty(int32_t sockfd) {
         }
     }
     char Content_Length[] = "Content-Length: ";
-    fprintf(stderr, "2");
     size_t content_len = (size_t)atoi(strstr(buf, Content_Length) + sizeof(Content_Length)-1);
-    fprintf(stderr, "3");
     size_t body_recvd = size - (size_t)(header_end+4-buf); //how much we already received from the body after the header ends
     size_t body_left = content_len - body_recvd;
     buf = realloc(buf, body_left+size+1);
@@ -198,7 +196,7 @@ bool recv_empty(int32_t sockfd) {
     const char *ptr = strstr(buf, "Your order has been sent!");
 
     #ifdef __MY_DEBUG__
-        puts(buf);
+        //puts(buf);
     #endif
 
     free(buf);
@@ -233,7 +231,6 @@ void binary_search(char * discovered_name, int sockfd) {
             char mid = (char)(low + (high - low) / 2);
         #ifdef __MY_DEBUG__
             count++;
-            fprintf(stderr, "1");
         #endif
             if (send_check_success(discovered_name, i, mid, sockfd)) {
                 low=mid+1;

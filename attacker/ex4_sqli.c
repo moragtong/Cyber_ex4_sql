@@ -211,7 +211,6 @@ bool recv_empty(int32_t sockfd) {
 
 bool send_check_success(char * discovered_name, int sockfd) {
     char mal_req[2048];
-    char formatted_discovered_name[33] = {0};
     sprintf(mal_req, "GET /index.php?%s%s%s HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
         "Connection: Keep-Alive\r\n"

@@ -236,7 +236,7 @@ void binary_search(char * discovered_name, int sockfd) {
             count++;
         #endif
             if (send_check_success(discovered_name, i, mid, sockfd)) {
-                high=mid-1;
+                high=mid;
             }
             else {
                 low=mid+1;

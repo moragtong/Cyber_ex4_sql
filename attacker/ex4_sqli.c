@@ -318,7 +318,7 @@ const char *url_map[96] = {
     "%22", // 0x22 "
     "%23", // 0x23 #
     "%24", // 0x24 $
-    "%25", // 0x25 %
+    "%5c%25", // 0x25 %
     "%26", // 0x26 &
     "%27", // 0x27 '
     "%28", // 0x28 (
@@ -326,8 +326,8 @@ const char *url_map[96] = {
     "%2A", // 0x2A *
     "%2B", // 0x2B +
     "%2C", // 0x2C ,
-    "-",   // 0x2D - (Unreserved)
-    ".",   // 0x2E . (Unreserved)
+    "-",   // 0x2D -
+    ".",   // 0x2E .
     "%2F", // 0x2F /
 
     // --- 0x30 to 0x39 (Numbers 0-9 Unreserved) ---
@@ -351,7 +351,7 @@ const char *url_map[96] = {
     "%5C", // 0x5C \ (Backslash)
     "%5D", // 0x5D ]
     "%5E", // 0x5E ^
-    "%5F", // 0x5F _
+    "%5c%5F", // 0x5F _
     "%60", // 0x60 `
 
     // --- 0x61 to 0x7A (Lowercase a-z Unreserved) ---

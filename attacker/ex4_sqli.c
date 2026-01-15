@@ -595,7 +595,7 @@ int32_t main() {
         binary_search(check_password, &pwd_ctx);
     }
 
-    printf("Found Password/Hash: %s\n", final_password_ident);
+    printf("Found Password/Hash: %s\n", final_password);
 
     close(sockfd);
 }

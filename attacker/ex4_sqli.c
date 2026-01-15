@@ -510,7 +510,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
             #endif
             break;
         }
-        gen_ctx->discovered[strlen(gen_ctx->discovered)] = low + 0x20;
+        gen_ctx->discovered[strlen(gen_ctx->discovered)] = (char)low + 0x20;
         strcat(gen_ctx->discovered_identifier, url_map_identifier[low]);
         strcat(gen_ctx->discovered_like, url_map_like[low]);
     }

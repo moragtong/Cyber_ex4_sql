@@ -244,7 +244,7 @@ bool check_table(const void *ctx) {
         "Connection: Keep-Alive\r\n"
         "\r\n";
 
-    sprintf(mal_req, fmt, table_ctx->discovered,  table_ctx->index + 1, table_ctx->guess);
+    sprintf(mal_req, fmt, table_ctx->discovered, strlen(table_ctx->discovered), table_ctx->index + 1, table_ctx->guess);
     _send(table_ctx->sockfd, mal_req, strlen(mal_req));
     return recv_empty(table_ctx->sockfd);
 }

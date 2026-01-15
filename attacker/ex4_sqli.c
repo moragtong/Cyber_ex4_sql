@@ -366,7 +366,7 @@ const char *url_map_like[96] = {
     "%7F"  // 0x7F DEL
 };
 
-/*const char *url_map_single_quote[96] = {
+const char *url_map_single_quote[96] = {
     "%20", // 0x20 Space
     "%21", // 0x21 !
     "%5C%22", // 0x22 "
@@ -418,7 +418,7 @@ const char *url_map_like[96] = {
     "%7D", // 0x7D }
     "~",   // 0x7E ~ (Unreserved)
     "%7F"  // 0x7F DEL
-};*/
+};
 
 void binary_search(check_func_t check_fn, void *ctx) {
     GeneralCtx *gen_ctx = (GeneralCtx *)ctx;
@@ -439,7 +439,7 @@ void binary_search(check_func_t check_fn, void *ctx) {
             count++;
         #endif
             gen_ctx->index = i;
-            gen_ctx->guess = url_map_like[mid];
+            gen_ctx->guess = url_map_single_quote[mid];
             if (check_fn(ctx)) {
                 high=mid;
             } else {

